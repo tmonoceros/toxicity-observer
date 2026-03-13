@@ -1,0 +1,12 @@
+[project]
+name = "perspectivebot"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "google-api-python-client>=2.190.0",
+    "lxml>=6.0.2",
+    "requests>=2.32.5",
+]

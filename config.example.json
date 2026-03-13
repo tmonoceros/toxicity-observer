@@ -1,0 +1,19 @@
+{
+  "steam_scraper_config": {
+    "development_web_cache": false,
+    "cutoff_hours": 24, 
+    "steam_apps": [
+      {
+        "appId": 3269230,
+        "name": "Earth vs Mars"
+      }
+    ]
+  },
+  "perspective_config": {
+    "api_key": "YOUR_PERSPECTIVE_API_KEY",
+    "toxicity_threshold": 0.5
+  },
+  "discord_reporter_config": {
+    "webhook_url": "YOUR_DISCORD_WEBHOOK_URL"
+  }
+}
