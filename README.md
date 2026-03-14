@@ -3,20 +3,30 @@ ToxicityObserver is a bot that identifies likely toxic posts and reports them fo
 
 Currently in a very rough/initial state. One day it may become extensible to support other platforms and scoring methods or include other fanciness. That is not this day.
 
+
 ## Running it
 Create your config file - copy `config.example.json` and fill in your values.
+
+### Locally 
+```powershell
+$env:TOXICITY_OBSERVER_CONFIG_PATH = "/path/to/your/config.json"
+uv run src/main.py
+```
+
+###  Docker
 
 Then - 
 
 `docker build -t toxicity-observer-dev .`
 
-`docker run -v /path/to/config.dev.json:/app/config.json toxicity-observer-dev`
+`docker run -e TOXICITY_OBSERVER_CONFIG_PATH=/app/config.json -v /path/to/config.dev.json:/app/config.json toxicity-observer-dev`
 
 ## Development Caching 
 To avoid hammering Steam and/or Perspective API during development, you can enable caching for the Steam scraper and the Perspective scorer, both of which will cache results in the /cache/ directory. You can maintain this cache across runs with mounting the cache directory
 
 ```
 docker run `
+  -e TOXICITY_OBSERVER_CONFIG_PATH=/app/config.json `
   -v "/path/to/config.dev.json:/app/config.json" `
   -v "/path/to/cache:/app/cache" `
   toxicity-observer-dev

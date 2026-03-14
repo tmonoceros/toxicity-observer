@@ -9,9 +9,9 @@ from perspective import PerspectiveScorer
 from discord_markdown_reporter import DiscordReporter
 from models import ToxicPost
 
-CONFIG_PATH = os.environ.get("CONFIG_PATH", "config.json")
+CONFIG_PATH = os.environ.get("TOXICITY_OBSERVER_CONFIG_PATH")
 
-if (not os.path.exists(CONFIG_PATH)):
+if not CONFIG_PATH or not os.path.exists(CONFIG_PATH):
     logging.error(f"No config file found at {CONFIG_PATH}")
     raise SystemExit(1)
 
