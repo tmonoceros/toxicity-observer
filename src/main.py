@@ -37,6 +37,7 @@ if __name__ == "__main__":
         logging.info(f"Processing {app_name} (appId={app_id})")
 
         posts = scraper.scrape_app(app_id)
+        logging.info(f"[{app_name}] Retrieved {len(posts)} comments.")
 
         toxic_posts = []
         for post in posts:
