@@ -50,7 +50,7 @@ class PerspectiveScorer:
             discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
             static_discovery=False,
             cache_discovery=False,
-        )
+        ) 
 
         analyze_request = {
             'comment': {'text': message},
@@ -58,8 +58,11 @@ class PerspectiveScorer:
             'doNotStore': True
         }
 
-        max_backoff = 30
-        for attempt in range(6):
+        # Perspective API quotas are per-minute
+        delay = 60
+        max_failures = 5
+        failures = 0
+        while True:
             try:
                 response = client.comments().analyze(body=analyze_request).execute()
                 break
@@ -74,10 +77,10 @@ class PerspectiveScorer:
                     logger.error(f"Bad request to Perspective API for comment: {message[:50]}... URL: {url}")
                     return None
                 if e.resp.status == 429:
-                    delay = 2 ** attempt
-                    if delay > max_backoff:
+                    failures += 1
+                    if failures > max_failures:
                         raise
-                    logger.warning(f"Perspective API rate limited, retrying in {delay}s...")
+                    logger.warning(f"Perspective API rate limited, retrying in {delay}s (attempt {failures+1})")
                     time.sleep(delay)
                     continue
                 raise

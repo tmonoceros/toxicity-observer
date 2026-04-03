@@ -81,7 +81,6 @@ def _split_message(text: str, max_length: int) -> list[str]:
             chunks.append(text)
             break
 
-        # Find the last newline within the limit
         split_at = text.rfind("\n", 0, max_length)
         if split_at == -1:
             split_at = max_length
