@@ -10,7 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
-from models import SteamPost
+from ..models import SteamPost
 
 logger = logging.getLogger(__name__)
 

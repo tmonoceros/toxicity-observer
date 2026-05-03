@@ -4,10 +4,10 @@ import os
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-from steam_scraper import SteamScraper
-from perspective import PerspectiveScorer
-from discord_markdown_reporter import DiscordReporter
-from models import ToxicPost
+from .steam_scraper import SteamScraper
+from .perspective import PerspectiveScorer
+from .discord_markdown_reporter import DiscordReporter
+from .models import ToxicPost
 
 CONFIG_PATH = os.environ.get("TOXICITY_OBSERVER_CONFIG_PATH")
 
@@ -15,7 +15,7 @@ if not CONFIG_PATH or not os.path.exists(CONFIG_PATH):
     logging.error(f"No config file found at {CONFIG_PATH}")
     raise SystemExit(1)
 
-if __name__ == "__main__":
+def main():
     with open(CONFIG_PATH) as f:
         config = json.load(f)
 
@@ -55,3 +55,6 @@ if __name__ == "__main__":
         results[app_name] = toxic_posts
 
     reporter.report(results)
+
+if __name__ == "__main__":
+    main()

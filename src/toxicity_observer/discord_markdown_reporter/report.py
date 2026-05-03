@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from models import ToxicPost
+from ..models import ToxicPost
 
 logger = logging.getLogger(__name__)
 

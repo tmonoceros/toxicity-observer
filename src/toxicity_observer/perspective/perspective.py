@@ -6,7 +6,7 @@ import json
 import logging
 import time
 
-from models import ScoreResult
+from ..models import ScoreResult
 
 logger = logging.getLogger(__name__)
 
