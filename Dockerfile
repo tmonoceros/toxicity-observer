@@ -7,4 +7,5 @@ RUN uv sync --frozen --no-dev
 
 COPY src/ src/
 
-CMD ["uv", "run", "python", "src/main.py"]
+ENV PYTHONPATH=/app/src
+CMD ["uv", "run", "python", "-m", "toxicity_observer"]

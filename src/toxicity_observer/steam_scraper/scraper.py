@@ -1,7 +1,6 @@
 import logging
 import re
 import time
-import html
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from copy import copy
@@ -114,9 +113,13 @@ class SteamScraper:
 
                 thread_url = overlay.get("href", "")
                 thread_id = topic.get("data-gidforumtopic", "")
-                tooltip = topic.get("data-tooltip-forum", "")
 
-                last_post_time = _parse_tooltip_timestamp(tooltip, now) if tooltip else None
+                lastpost_el = topic.select_one("div.forum_topic_lastpost[data-timestamp]")
+                data_ts = lastpost_el.get("data-timestamp") if lastpost_el else None
+                try:
+                    last_post_time = datetime.fromtimestamp(int(data_ts), tz=timezone.utc) if data_ts else None
+                except (ValueError, OSError):
+                    last_post_time = None
 
                 if last_post_time and last_post_time >= cutoff:
                     all_old = False
@@ -129,8 +132,7 @@ class SteamScraper:
                     continue  # old thread, but keep checking this page
                 else:
                     unparseable += 1
-                    if tooltip:
-                        logger.warning(f"Could not parse last post time for thread: {thread_url}")
+                    logger.warning(f"Could not parse last post time for thread: {thread_url}")
 
             # If every thread on the page was unparseable (no tooltips), stop
             if unparseable == len(topics):
@@ -177,7 +179,7 @@ class SteamScraper:
 
             for comment in comments:
                 # Timestamp
-                ts_el = comment.select_one("span.commentthread_comment_timestamp")
+                ts_el = comment.select_one(".commentthread_comment_timestamp")
                 if not ts_el:
                     continue
                 data_ts = ts_el.get("data-timestamp")
@@ -228,7 +230,7 @@ class SteamScraper:
             return None
 
         # Timestamp
-        ts_el = op_el.select_one(".authorline span.date[data-timestamp]")
+        ts_el = op_el.select_one(".commentthread_comment_timestamp[data-timestamp]")
         if not ts_el:
             return None
         data_ts = ts_el.get("data-timestamp")
@@ -263,57 +265,6 @@ class SteamScraper:
             "url": page_url,
             "title": title,
         }
-
-
-def _parse_absolute_timestamp(text: str, now: datetime) -> datetime | None:
-    """Parse Steam absolute timestamps like 'Jan 14 @ 4:36pm' or 'Mar 27, 2023 @ 1:55pm'."""
-    text = text.strip()
-    # Format with year: "Mar 27, 2023 @ 1:55pm"
-    for fmt in ("%b %d, %Y @ %I:%M%p", "%b %d, %Y @ %I:%M %p"):
-        try:
-            return datetime.strptime(text, fmt).replace(tzinfo=timezone.utc)
-        except ValueError:
-            pass
-    # Format without year: "Jan 14 @ 4:36pm" — assume current year
-    for fmt in ("%b %d @ %I:%M%p", "%b %d @ %I:%M %p"):
-        try:
-            dt = datetime.strptime(text, fmt).replace(year=now.year, tzinfo=timezone.utc)
-            # If parsed date is in the future, it's probably last year
-            if dt > now:
-                dt = dt.replace(year=now.year - 1)
-            return dt
-        except ValueError:
-            pass
-    # Time-only format: "5:24pm" — means today
-    for fmt in ("%I:%M%p", "%I:%M %p"):
-        try:
-            t = datetime.strptime(text, fmt)
-            return now.replace(hour=t.hour, minute=t.minute, second=0, microsecond=0)
-        except ValueError:
-            pass
-    return None
-
-
-def _parse_tooltip_timestamp(tooltip_html: str, now: datetime) -> datetime | None:
-    """Extract last-post timestamp from a thread tooltip HTML string."""
-    decoded = html.unescape(tooltip_html)
-    # Look for the "Last post:" row's <span> timestamp (second span in that row)
-    # Find the "Last post:" section and get all spans after it
-    last_post_idx = decoded.find("Last post:")
-    if last_post_idx >= 0:
-        after_last_post = decoded[last_post_idx:]
-        spans_after = re.findall(r"<span[^>]*>(.*?)</span>", after_last_post)
-        for span_text in spans_after:
-            result = _parse_absolute_timestamp(span_text, now)
-            if result:
-                return result
-    # Fall back: try the last <span> with a date-like value from entire tooltip
-    spans = re.findall(r"<span[^>]*>(.*?)</span>", decoded)
-    for span_text in reversed(spans):
-        result = _parse_absolute_timestamp(span_text, now)
-        if result:
-            return result
-    return None
 
 
 def _extract_total_pages(soup: BeautifulSoup) -> int:
