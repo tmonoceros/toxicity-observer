@@ -38,8 +38,9 @@ class PerspectiveScorer:
     def score_message(self, message: str, url: str = "") -> ScoreResult | None:
         """Score a message using the Perspective API. Returns a ScoreResult or None if unscorable."""
         if message in self._cache:
-            logger.debug(f"Cache hit for comment: {message[:50]}...")
-            return self._cache[message]
+            cached = self._cache[message]
+            logger.debug(f"Cache hit: score={cached.toxicity_score if cached is not None else 'None'} url={url} text={message[:60]!r}")
+            return cached
 
         if self._api_key is None:
             raise ValueError("Perspective API key not configured")
@@ -62,6 +63,7 @@ class PerspectiveScorer:
         delay = 60
         max_failures = 5
         failures = 0
+        logger.debug(f"Scoring via API: url={url} text={message[:60]!r}")
         while True:
             try:
                 response = client.comments().analyze(body=analyze_request).execute()
@@ -92,6 +94,7 @@ class PerspectiveScorer:
             url=url,
             toxicity_score=score,
         )
+        logger.debug(f"Score result: score={score:.4f} toxic={result.toxic} url={url}")
         self._cache[message] = result
         self._save_cache()
         return result

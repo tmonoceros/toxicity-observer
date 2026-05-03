@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(), format="%(levelname)s: %(message)s")
 
 from .steam_scraper import SteamScraper
 from .perspective import PerspectiveScorer

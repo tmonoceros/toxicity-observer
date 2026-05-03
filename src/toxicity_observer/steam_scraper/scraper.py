@@ -188,10 +188,12 @@ class SteamScraper:
                 try:
                     post_time = datetime.fromtimestamp(int(data_ts), tz=timezone.utc)
                 except (ValueError, OSError):
+                    logger.debug(f"Skipping comment (bad timestamp): data_ts={data_ts!r} {page_url}")
                     continue
 
                 if post_time < cutoff:
                     found_old = True
+                    logger.debug(f"Skipping comment (too old): {post_time.isoformat()} {page_url}")
                     continue
 
                 # Author
@@ -208,6 +210,7 @@ class SteamScraper:
                 post_id = comment_id.replace("comment_", "") if comment_id.startswith("comment_") else ""
                 post_url = f"{page_url}#c{post_id}" if post_id else page_url
 
+                logger.debug(f"Collected comment: author={author_name!r} ts={post_time.isoformat()} url={post_url} text={content[:60]!r}")
                 posts.append({
                     "author_name": author_name,
                     "author_profile": author_profile,
@@ -239,9 +242,11 @@ class SteamScraper:
         try:
             post_time = datetime.fromtimestamp(int(data_ts), tz=timezone.utc)
         except (ValueError, OSError):
+            logger.debug(f"Skipping OP (bad timestamp): data_ts={data_ts!r} {page_url}")
             return None
 
         if post_time < cutoff:
+            logger.debug(f"Skipping OP (too old): {post_time.isoformat()} {page_url}")
             return None
 
         # Title
@@ -257,6 +262,7 @@ class SteamScraper:
         content_el = op_el.select_one("div.content")
         content = _extract_comment_text(content_el) if content_el else ""
 
+        logger.debug(f"Collected OP: author={author_name!r} ts={post_time.isoformat()} title={title!r} url={page_url}")
         return {
             "author_name": author_name,
             "author_profile": author_profile,
@@ -265,6 +271,7 @@ class SteamScraper:
             "url": page_url,
             "title": title,
         }
+
 
 
 def _extract_total_pages(soup: BeautifulSoup) -> int:
